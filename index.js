@@ -164,8 +164,15 @@ exports.writeToStream = function(object, options, stream) {
   return typeHasher(options, stream).dispatch(object);
 };
 
-function typeHasher(options, writeTo, context){
+/**
+ * @param options
+ * @param writeTo
+ * @param {any[]} context
+ * @param {Set<any>} contextSet
+ */
+function typeHasher(options, writeTo, context, contextSet){
   context = context || [];
+  contextSet = contextSet || new Set(context);
   var write = function(str) {
     if (writeTo.update) {
       return writeTo.update(str, 'utf8');
@@ -203,10 +210,11 @@ function typeHasher(options, writeTo, context){
 
       var objectNumber = null;
 
-      if ((objectNumber = context.indexOf(object)) >= 0) {
+      if (contextSet.has(object) && (objectNumber = context.indexOf(object)) >= 0) {
         return this.dispatch('[CIRCULAR:' + objectNumber + ']');
       } else {
         context.push(object);
+        contextSet.add(object);
       }
 
       if (typeof Buffer !== 'undefined' && Buffer.isBuffer && Buffer.isBuffer(object)) {
@@ -286,6 +294,7 @@ function typeHasher(options, writeTo, context){
         return strm.read().toString();
       });
       context = context.concat(contextAdditions);
+      contextSet = new Set(context);
       entries.sort();
       return this._array(entries, false);
     },
@@ -447,4 +456,14 @@ function PassThrough() {
       return this.buf;
     }
   };
+}
+
+function setDiff(a, b) {
+  var res = new Set();
+  for (var item of a) {
+    if (!b.has(item)) {
+      res.add(item);
+    }
+  }
+  return res;
 }
