@@ -149,11 +149,6 @@ describe('hash', function() {
   it("various hashes in crypto.getHashes() should be supported", function() {
     var hashes = ['sha1', 'md5'];
 
-    if (crypto.getHashes) {
-      // take all hashes from crypto.getHashes() starting with MD or SHA
-      hashes = crypto.getHashes().filter(RegExp.prototype.test.bind(/^(md|sha)/i));
-    }
-
     var obj = {randomText: 'bananas'};
 
     for (var i = 0; i < hashes.length; i++) {
